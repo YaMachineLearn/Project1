@@ -174,6 +174,8 @@ def labelToList(label):
     return l
 
 def labelToArray(label):
+    #better: should be named "labelsToArrays(labelList)"
+    #   or "labelListToArrayList"
     list = []
     for lb in label:
         l = [0] * 48
