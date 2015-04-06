@@ -4,6 +4,57 @@ import numpy as np
 
 LABEL_NUM = 48
 
+LABEL_LIST = [
+    "aa" ,
+    "ae" ,
+    "ah" ,
+    "ao" ,
+    "aw" ,
+    "ax" ,
+    "ay" ,
+    "b"  ,
+    "ch" ,
+    "cl" ,
+    "d"  ,
+    "dh" ,
+    "dx" ,
+    "eh" ,
+    "el" ,
+    "en" ,
+    "epi",
+    "er" ,
+    "ey" ,
+    "f"  ,
+    "g"  ,
+    "hh" ,
+    "ih" ,
+    "ix" ,
+    "iy" ,
+    "jh" ,
+    "k"  ,
+    "l"  ,
+    "m"  ,
+    "ng" ,
+    "n"  ,
+    "ow" ,
+    "oy" ,
+    "p"  ,
+    "r"  ,
+    "sh" ,
+    "sil",
+    "s"  ,
+    "th" ,
+    "t"  ,
+    "uh" ,
+    "uw" ,
+    "vcl",
+    "v"  ,
+    "w"  ,
+    "y"  ,
+    "zh" ,
+    "z"
+]
+
 DICT_LABEL_NUM = {
     "aa"    :0,
     "ae"    :1,
@@ -106,13 +157,18 @@ DICT_LABEL_LABEL = {
     "z"     :"z"
 }
 
-def labelToNum(label):
+def labelToIndex(label):
     return DICT_LABEL_NUM[label]
 
+def indexToLabel(index):
+    return LABEL_LIST[index]
+
 def labelToLabel(label):
+    #48 to 39
     return DICT_LABEL_LABEL[label]
 
 def labelToList(label):
+    #to [0,...,0,1,0,...0]
     l = [0] * 48
     l[ DICT_LABEL_NUM[label] ] = 1
     return l
