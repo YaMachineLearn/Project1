@@ -58,7 +58,7 @@ class dnn:
         self.errorNum = 0
         for i in xrange(10): # number of frames to be input
             self.out, self.cost = train_model(i)
-            if ( T.argmax(self.out).eval() != labelUtil.labelToNum(trainLabels[i]) ):
+            if ( T.argmax(self.out).eval() != labelUtil.DICT_LABEL_NUM[trainLabels[i]] ):
                 self.errorNum = self.errorNum + 1
         self.errorRate = self.errorNum / 10.0 # number of frames to be input
 
