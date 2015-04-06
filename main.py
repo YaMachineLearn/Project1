@@ -10,7 +10,8 @@ TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
 
 HIDDEN_LAYER = [128]
 LEARNING_RATE = 0.01
-EPOCH_NUM = 500
+EPOCH_NUM = 2000
+BATCH_SIZE = 8
 
 print 'Parsing...'
 t0 = time.time()
@@ -23,7 +24,7 @@ NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM 
 
 print 'Training...'
 t2 = time.time()
-aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM )
+aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE )
 aDNN.train(trainFeats, trainLabels)
 t3 = time.time()
 print '...costs ', t3 - t2, ' seconds'

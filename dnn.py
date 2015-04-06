@@ -1,6 +1,7 @@
 
 import forward
 import labelUtil
+import random
 import theano
 import numpy as np
 import theano.tensor as T
@@ -8,11 +9,12 @@ from theano import shared
 from theano import function
 
 class dnn:
-    def __init__(self, neuronNumList, learningRate, epochNum):
+    def __init__(self, neuronNumList, learningRate, epochNum, batchSize):
         self.neuronNumList = neuronNumList    #ex: [128, 128, 128]
         self.learningRate = learningRate
         self.epochNum = epochNum
         self.neuronNumList = neuronNumList
+        self.batchSize = batchSize
 
         #better: check if input variables are in right format
         
@@ -32,14 +34,14 @@ class dnn:
     def train(self, trainFeats, trainLabels):
         index = T.iscalar()
         trainFeatsArray = shared(np.transpose(np.asarray(trainFeats, dtype=theano.config.floatX)))
-        inputVector = trainFeatsArray[:,[index]]
+        inputVector = trainFeatsArray[:, index*self.batchSize:(index+1)*self.batchSize]
         trainLabelsArray = shared(np.transpose(labelUtil.labelToArray(trainLabels)))
-        outputVectorRef = trainLabelsArray[:,[index]]
+        outputVectorRef = trainLabelsArray[:, index*self.batchSize:(index+1)*self.batchSize]
         lineIn = inputVector
         for i in range( len(self.weightMatrices) ):
             weightMatrix = self.weightMatrices[i]
             biasVector = self.biasArrays[i]
-            lineOutput = T.dot(weightMatrix, lineIn) + biasVector
+            lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, self.batchSize, 1)
             lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
         outputVector = lineIn
         cost = T.sum(T.sqr(outputVector - outputVectorRef))
@@ -51,16 +53,19 @@ class dnn:
         ]
         train_model = function(inputs=[index], outputs=[outputVector, cost], updates=updates)
         
+        numOfBatches = 1 # numOfBatches * batchSize = total training data size
+        randIndices = range(numOfBatches)        
         for epoch in xrange(self.epochNum):
-            for i in xrange(10): # number of frames to be input
+            random.shuffle(randIndices)
+            #for i in xrange(numOfBatches): # serial (ordered) inputs
+            for i in randIndices: # stochastic inputs
                 self.out, self.cost = train_model(i)
 
         self.errorNum = 0
-        for i in xrange(10): # number of frames to be input
+        for i in xrange(numOfBatches):
             self.out, self.cost = train_model(i)
-            if ( T.argmax(self.out).eval() != labelUtil.DICT_LABEL_NUM[trainLabels[i]] ):
-                self.errorNum = self.errorNum + 1
-        self.errorRate = self.errorNum / 10.0 # number of frames to be input
+            self.errorNum = self.errorNum + np.sum(T.argmax(self.out,0).eval() != labelUtil.labelsToIndices(trainLabels[i*self.batchSize:(i+1)*self.batchSize]))
+        self.errorRate = self.errorNum / float(numOfBatches*self.batchSize)
 
         #self.out = []
         #for i in xrange(10):

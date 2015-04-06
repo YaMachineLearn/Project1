@@ -160,6 +160,12 @@ DICT_LABEL_LABEL = {
 def labelToIndex(label):
     return DICT_LABEL_NUM[label]
 
+def labelsToIndices(labels):
+    list = []
+    for lb in labels:
+        list.append(DICT_LABEL_NUM[lb])
+    return np.asarray(list, dtype=theano.config.floatX)
+
 def indexToLabel(index):
     return LABEL_LIST[index]
 
