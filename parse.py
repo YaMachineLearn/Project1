@@ -58,3 +58,10 @@ def parseTestData(TEST_FEATURE_FILENAME):
     
     return (testFeats, testFrameNames)
 
+def outputTestLabelAsCsv(testFrameNames, testLabels, TEST_CSV_FILE_NAME):
+    #TEST_CSV_FILE_NAME = "result.csv"
+    #testFrameNames = ['fadg0_si1279_1', 'fadg0_si1279_2', ...]
+    #testLabels = ['sil', 'aa', ...]
+    with open(TEST_CSV_FILE_NAME, 'w') as testCsvFile:
+        for i in xrange( len(testFrameNames) ):
+            testCsvFile.write(testFrameNames[i] + ',' + testLabels[i] + '\n')
