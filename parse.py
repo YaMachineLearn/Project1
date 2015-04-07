@@ -7,8 +7,6 @@ def parseTrainData(TRAIN_FEATURE_FILENAME, TRAIN_LABEL_FILENAME):
     trainFeats = []
     trainLabels = []
     trainFrameNames = []
-    #trainFeatCount = 0
-    #labelCount = 0
     #trainFeatDim = 0    #dimension
 
     #parse training features
@@ -18,7 +16,6 @@ def parseTrainData(TRAIN_FEATURE_FILENAME, TRAIN_LABEL_FILENAME):
                 lineList = line.rstrip().split(" ")
                 trainFrameNames.append( lineList.pop(0) )
                 trainFeats.append( [ float(ele) for ele in lineList ] )
-                #trainFeatCount += 1
 
     #parse training labels
     with open(TRAIN_LABEL_FILENAME) as trainLabelFile:
@@ -26,10 +23,9 @@ def parseTrainData(TRAIN_FEATURE_FILENAME, TRAIN_LABEL_FILENAME):
             if line.rstrip():
                 lineList = line.rstrip().split(",")
                 trainLabels.append(lineList[1])
-                #labelCount += 1
 
-#    if not not trainFeats:
-#        trainFeatDim = len(trainFeats[0])
+    #if not not trainFeats:
+    #    trainFeatDim = len(trainFeats[0])
     
     return (trainFeats, trainLabels, trainFrameNames)
 
@@ -41,8 +37,6 @@ def parseTestData(TEST_FEATURE_FILENAME):
 
     testFeats = []
     testFrameNames = []
-    #testFeatCount = 0
-    #testFeatDim = 0
 
     #parse testing features
     with open(TEST_FEATURE_FILENAME) as testFeatFile:
@@ -51,10 +45,9 @@ def parseTestData(TEST_FEATURE_FILENAME):
                 lineList = line.rstrip().split(" ")
                 testFrameNames.append( lineList.pop(0) )
                 testFeats.append( [ float(ele) for ele in lineList ] )
-                #testFeatCount += 1
 
-#    if not not testFeats:
-#        testFeatDim = len(testFeats[0])
+    #if not not testFeats:
+    #    testFeatDim = len(testFeats[0])
     
     return (testFeats, testFrameNames)
 

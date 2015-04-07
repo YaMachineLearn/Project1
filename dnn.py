@@ -11,14 +11,13 @@ from theano import function
 
 class dnn:
     def __init__(self, neuronNumList, learningRate, epochNum, batchSize, LOAD_MODEL_FILENAME=None):
-        self.neuronNumList = neuronNumList    #ex: [128, 128, 128]
+        self.neuronNumList = neuronNumList    #ex: [69, 128, 128, 128, 48]
         self.learningRate = learningRate
         self.epochNum = epochNum
         self.neuronNumList = neuronNumList
         self.batchSize = batchSize
-        #better: check if input variables are in right format
+        #better: check if input parameters are in correct formats
         
-        #neuronNumList: [69, 128, 128, 128, 48]
         self.weightMatrices = []
         self.biasArrays = []
         if LOAD_MODEL_FILENAME is None:
@@ -29,6 +28,7 @@ class dnn:
         #ex: biasArrays == [ [ [0],[0],...,[0] ], [ [0],[0],...,[0] ], ... ]
         
     def train(self, trainFeats, trainLabels):
+        """
         index = T.iscalar()
         trainFeatsArray = shared(np.transpose(np.asarray(trainFeats, dtype=theano.config.floatX)))
         inputVector = trainFeatsArray[:, index*self.batchSize:(index+1)*self.batchSize]
@@ -41,6 +41,7 @@ class dnn:
             lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, self.batchSize, 1)
             lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
         outputVector = lineIn
+
         cost = T.sum(T.sqr(outputVector - outputVectorRef)) / float(self.batchSize)
         params = self.weightMatrices + self.biasArrays
         gparams = [T.grad(cost, param) for param in params]
@@ -49,7 +50,9 @@ class dnn:
             for param, gparam in zip(params, gparams)
         ]
         train_model = function(inputs=[index], outputs=[outputVector, cost], updates=updates)
-        
+
+
+
         numOfBatches = len(trainFeats) / self.batchSize
         #numOfBatches = 1 # numOfBatches * batchSize = total training data size
         randIndices = range(numOfBatches)        
@@ -64,11 +67,54 @@ class dnn:
                 self.out, self.cost = train_model(i)
                 count = count + 1
 
-        self.errorNum = 0
-        for i in xrange(numOfBatches):
-            self.out, self.cost = train_model(i)
-            self.errorNum = self.errorNum + np.sum(T.argmax(self.out,0).eval() != labelUtil.labelsToIndices(trainLabels[i*self.batchSize:(i+1)*self.batchSize]))
-        self.errorRate = self.errorNum / float(numOfBatches*self.batchSize)
+        """
+
+        indices = T.ivector()
+        trainFeatsArray = shared(np.transpose(np.asarray(trainFeats, dtype=theano.config.floatX)))
+        #inputVector = trainFeatsArray[:, index*self.batchSize:(index+1)*self.batchSize]
+        inputVector = trainFeatsArray[:, indices]
+        trainLabelsArray = shared(np.transpose(labelUtil.labelToArray(trainLabels)))
+        #outputVectorRef = trainLabelsArray[:, index*self.batchSize:(index+1)*self.batchSize]
+        outputVectorRef = trainLabelsArray[:, indices]
+        lineIn = inputVector
+        for i in range( len(self.weightMatrices) ):
+            weightMatrix = self.weightMatrices[i]
+            biasVector = self.biasArrays[i]
+            lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, self.batchSize, 1)
+            lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
+        outputVector = lineIn
+        cost = T.sum(T.sqr(outputVector - outputVectorRef)) / self.batchSize
+        params = self.weightMatrices + self.biasArrays
+        gparams = [T.grad(cost, param) for param in params]
+        updates = [
+            (param, param - self.learningRate * gparam) # (old parameters, updated parameters)
+            for param, gparam in zip(params, gparams)
+        ]
+        train_model = function(inputs=[indices], outputs=[outputVector, cost], updates=updates)
+
+        #start training
+        numOfBatches = len(trainFeats) / self.batchSize
+        shuffledIndex = range(len(trainFeats))
+        for epoch in xrange(self.epochNum):
+            # shuffle feats and labels
+            #trainFeats, trainLabels = self.shuffleFeatsAndLabels(trainFeats, trainLabels)
+            random.shuffle(shuffledIndex)
+
+            count = 0
+            for i in xrange(numOfBatches): #feats and labels are shuffled, so don't need random index here
+                progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
+                sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
+                sys.stdout.flush()
+                self.out, self.cost = train_model(shuffledIndex[i*self.batchSize:(i+1)*self.batchSize])
+                count = count + 1
+
+
+
+        #self.errorNum = 0
+        forwardFunction = self.getForwardFunction(trainFeats, len(trainFeats), self.weightMatrices, self.biasArrays)
+        self.out = forwardFunction(0)
+        self.errorNum = np.sum(T.argmax(self.out,0).eval() != labelUtil.labelsToIndices(trainLabels[0:len(trainFeats)]))
+        self.errorRate = self.errorNum / float(len(trainFeats))#float(numOfBatches*self.batchSize)
 
         #self.out = []
         #for i in xrange(10):
@@ -84,6 +130,32 @@ class dnn:
         for i in xrange(len(outputMaxIndex)):
             testLabels.append(labelUtil.LABEL_LIST[outputMaxIndex[i]])
         return testLabels
+
+    def forward(self):
+        pass
+
+    def getForwardFunction(self, testFeats, batchSize, weightMatrices, biasArrays):
+        index = T.iscalar()
+        testFeatsArray = shared(np.transpose(np.asarray(testFeats, dtype=theano.config.floatX)))
+        inputVectorArray = testFeatsArray[:, index * batchSize:(index + 1) * batchSize]
+        lineIn = inputVectorArray
+        for i in range( len(weightMatrices) ):
+            weightMatrix = weightMatrices[i]
+            biasVector = biasArrays[i]
+            lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, batchSize, 1)
+            lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
+        outputVectorArray = lineIn
+        test_model = function(inputs=[index], outputs=outputVectorArray)
+        return test_model
+
+    def backProp(self):
+        pass
+
+    def update(self):
+        pass
+
+    def calculateError(self):
+        pass
 
     def setRandomModel(self):
         for i in range( len(self.neuronNumList)-1 ):    #ex: range(5-1) => 0, 1, 2, 3
@@ -141,12 +213,4 @@ class dnn:
         t1 = time.time()
         print '...costs ', t1 - t0, ' seconds'
 
-"""
-class neuronLayer:
-    def __init__(self, prevNeuronNum, thisNeuronNum):
-        self.prevNeuronNum = prevNeuronNum
-        self.thisNeuronNum = thisNeuronNum
 
-        self.weights = [ [0] * prevNeuronNum ] * thisNeuronNum
-        self.biases = [0] * thisNeuronNum
-"""
