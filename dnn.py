@@ -4,6 +4,7 @@ import labelUtil
 import random
 import theano
 import numpy as np
+import sys
 import theano.tensor as T
 from theano import shared
 from theano import function
@@ -44,7 +45,7 @@ class dnn:
             lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, self.batchSize, 1)
             lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
         outputVector = lineIn
-        cost = T.sum(T.sqr(outputVector - outputVectorRef))
+        cost = T.sum(T.sqr(outputVector - outputVectorRef)) / self.batchSize
         params = self.weightMatrices + self.biasArrays
         gparams = [T.grad(cost, param) for param in params]
         updates = [
@@ -53,13 +54,19 @@ class dnn:
         ]
         train_model = function(inputs=[index], outputs=[outputVector, cost], updates=updates)
         
-        numOfBatches = 1 # numOfBatches * batchSize = total training data size
+        numOfBatches = len(trainFeats) / self.batchSize
+        #numOfBatches = 1 # numOfBatches * batchSize = total training data size
         randIndices = range(numOfBatches)        
         for epoch in xrange(self.epochNum):
             random.shuffle(randIndices)
             #for i in xrange(numOfBatches): # serial (ordered) inputs
+            count = 0
             for i in randIndices: # stochastic inputs
+                progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
+                sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
+                sys.stdout.flush()
                 self.out, self.cost = train_model(i)
+                count = count + 1
 
         self.errorNum = 0
         for i in xrange(numOfBatches):
@@ -87,8 +94,12 @@ class dnn:
         test_model = function(inputs=[index], outputs=outputVector)
         
         testLabels = []
-        for i in xrange(3):
-            testLabels.append(test_model(i))
+        for i in xrange(len(testFeats)):
+            progress = float(i) / float(len(testFeats)) * 100.
+            sys.stdout.write('Progress: %f%%    \r' % progress)
+            sys.stdout.flush()
+            outputMaxIndex = T.argmax(test_model(i), 0).eval()
+            testLabels.append(labelUtil.LABEL_LIST[outputMaxIndex])
         return testLabels
 
 """

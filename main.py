@@ -5,13 +5,14 @@ import labelUtil
 import time
 
 TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train_fbank_10000.ark"
-TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train_10000.lab"
+TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train.lab"
 TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
+OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
 HIDDEN_LAYER = [128]
 LEARNING_RATE = 0.01
-EPOCH_NUM = 2000
-BATCH_SIZE = 8
+EPOCH_NUM = 1
+BATCH_SIZE = 256
 
 print 'Parsing...'
 t0 = time.time()
@@ -33,8 +34,14 @@ print '...costs ', t3 - t2, ' seconds'
 #print aDNN.errorNum
 print 'Error rate: ', aDNN.errorRate
 
-#print 'Testing...'
-#testLabels = aDNN.test(testFeats)
+print 'Testing...'
+t4 = time.time()
+testLabels = aDNN.test(testFeats)
+t5 = time.time()
+print '...costs', t5 - t4, ' seconds'
+
+print 'Writing to csv file...'
+parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
 #print 'testLabels:'
 #print testLabels
 
