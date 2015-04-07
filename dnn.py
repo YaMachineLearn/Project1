@@ -45,7 +45,7 @@ class dnn:
             lineOutput = T.dot(weightMatrix, lineIn) + T.extra_ops.repeat(biasVector, self.batchSize, 1)
             lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
         outputVector = lineIn
-        cost = T.sum(T.sqr(outputVector - outputVectorRef)) / self.batchSize
+        cost = T.sum(T.sqr(outputVector - outputVectorRef)) / float(self.batchSize)
         params = self.weightMatrices + self.biasArrays
         gparams = [T.grad(cost, param) for param in params]
         updates = [
@@ -81,25 +81,12 @@ class dnn:
         #self.outputVector = forward.ForwardPropagate(shared(np.asarray(trainFeats[0], dtype=theano.config.floatX)), self.weightMatrices, self.biasArrays)
 
     def test(self, testFeats):
-        index = T.iscalar()
-        testFeatsArray = shared(np.transpose(np.asarray(testFeats, dtype=theano.config.floatX)))
-        inputVector = testFeatsArray[:,[index]]
-        lineIn = inputVector
-        for i in range( len(self.weightMatrices) ):
-            weightMatrix = self.weightMatrices[i]
-            biasVector = self.biasArrays[i]
-            lineOutput = T.dot(weightMatrix, lineIn) + biasVector
-            lineIn = 1. / (1. + T.exp(-lineOutput)) # the output of the current layer is the input of the next layer
-        outputVector = lineIn
-        test_model = function(inputs=[index], outputs=outputVector)
-        
+        test_model = forward.getForwardFunction(testFeats, len(testFeats), self.weightMatrices, self.biasArrays)
         testLabels = []
-        for i in xrange(len(testFeats)):
-            progress = float(i) / float(len(testFeats)) * 100.
-            sys.stdout.write('Progress: %f%%    \r' % progress)
-            sys.stdout.flush()
-            outputMaxIndex = T.argmax(test_model(i), 0).eval()
-            testLabels.append(labelUtil.LABEL_LIST[outputMaxIndex])
+        outputArray = test_model(0)
+        outputMaxIndex = T.argmax(test_model(0), 0).eval()
+        for i in xrange(len(outputMaxIndex)):
+            testLabels.append(labelUtil.LABEL_LIST[outputMaxIndex[i]])
         return testLabels
 
 """
