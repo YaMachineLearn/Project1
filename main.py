@@ -7,6 +7,8 @@ import time
 TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train_fbank_10000.ark"
 TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train.lab"
 TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
+SAVE_MODEL_FILENAME = "models/dnn.model"
+LOAD_MODEL_FILENAME = "models/dnn.model"
 OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
 HIDDEN_LAYER = [128]
@@ -26,6 +28,8 @@ NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM 
 print 'Training...'
 t2 = time.time()
 aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE )
+#print 'Saving Neural Network Model...'
+#aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
 aDNN.train(trainFeats, trainLabels)
 t3 = time.time()
 print '...costs ', t3 - t2, ' seconds'
@@ -33,6 +37,8 @@ print '...costs ', t3 - t2, ' seconds'
 #print aDNN.cost
 #print aDNN.errorNum
 print 'Error rate: ', aDNN.errorRate
+
+aDNN.saveModel(SAVE_MODEL_FILENAME)
 
 print 'Testing...'
 t4 = time.time()

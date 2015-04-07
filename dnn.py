@@ -1,4 +1,4 @@
-
+import time
 import forward
 import labelUtil
 import random
@@ -10,25 +10,21 @@ from theano import shared
 from theano import function
 
 class dnn:
-    def __init__(self, neuronNumList, learningRate, epochNum, batchSize):
+    def __init__(self, neuronNumList, learningRate, epochNum, batchSize, LOAD_MODEL_FILENAME=None):
         self.neuronNumList = neuronNumList    #ex: [128, 128, 128]
         self.learningRate = learningRate
         self.epochNum = epochNum
         self.neuronNumList = neuronNumList
         self.batchSize = batchSize
-
         #better: check if input variables are in right format
         
         #neuronNumList: [69, 128, 128, 128, 48]
         self.weightMatrices = []
-        self.biasArrays = []        
-        for i in range( len(self.neuronNumList)-1 ):    #ex: range(5-1) => 0, 1, 2, 3
-            self.weightMatrices.append( shared( np.asarray( np.random.normal(
-                loc=0.0, scale=1.0/np.sqrt(self.neuronNumList[i]),
-                size=(self.neuronNumList[i+1], self.neuronNumList[i])), dtype=theano.config.floatX) ) )
-            self.biasArrays.append( shared( np.asarray( np.random.normal(
-                loc=0.0, scale=1.0/np.sqrt(self.neuronNumList[i]),
-                size=(self.neuronNumList[i+1], 1)), dtype=theano.config.floatX) ) )
+        self.biasArrays = []
+        if LOAD_MODEL_FILENAME is None:
+            self.setRandomModel()
+        else:
+            self.loadModel(LOAD_MODEL_FILENAME)
         #ex: weightMatrices == [ [ [,,],[,,],...,[,,] ], [ [,,],[,,],...,[,,] ], ... ]
         #ex: biasArrays == [ [ [0],[0],...,[0] ], [ [0],[0],...,[0] ], ... ]
         
@@ -88,6 +84,62 @@ class dnn:
         for i in xrange(len(outputMaxIndex)):
             testLabels.append(labelUtil.LABEL_LIST[outputMaxIndex[i]])
         return testLabels
+
+    def setRandomModel(self):
+        for i in range( len(self.neuronNumList)-1 ):    #ex: range(5-1) => 0, 1, 2, 3
+            self.weightMatrices.append( shared( np.asarray( np.random.normal(
+                loc=0.0, scale=1.0/np.sqrt(self.neuronNumList[i]),
+                size=(self.neuronNumList[i+1], self.neuronNumList[i])), dtype=theano.config.floatX) ) )
+            self.biasArrays.append( shared( np.asarray( np.random.normal(
+                loc=0.0, scale=1.0/np.sqrt(self.neuronNumList[i]),
+                size=(self.neuronNumList[i+1], 1)), dtype=theano.config.floatX) ) )
+
+    def saveModel(self, SAVE_MODEL_FILENAME):
+        with open(SAVE_MODEL_FILENAME, 'w') as outputModelFile:
+            for i in xrange( len(self.weightMatrices) * 2 ):
+                # Saving weight matrices
+                if i % 2 == 0:
+                    weightMatrix = np.asarray(self.weightMatrices[i / 2].get_value(borrow=True, return_internal_type=True))
+                    weightMatrixDim = weightMatrix.shape  # Shape (matrix height, matrix width)
+                    for row in xrange( weightMatrixDim[0] ):
+                        for col in xrange( weightMatrixDim[1] ):
+                            outputModelFile.write(str(weightMatrix[row][col]) + ' ')
+                        outputModelFile.write('\n')
+                    outputModelFile.write('\n')
+                # Saving bias arrays
+                else:
+                    biasVector = np.asarray(self.biasArrays[(i - 1) / 2].get_value(borrow=True, return_internal_type=True))
+                    biasVectorDim = biasVector.shape  # Shape (vector height, vector width)
+                    for row in xrange( biasVectorDim[0] ):
+                        outputModelFile.write(str(biasVector[row][0]) + ' ')
+                    outputModelFile.write('\n\n')
+
+    def loadModel(self, LOAD_MODEL_FILENAME):
+        print 'Loading Neural Network Model...'
+        t0 = time.time()
+        with open(LOAD_MODEL_FILENAME) as modelFile:
+            i = 0
+            weightMatrix = []
+            biasVector = []
+            for line in modelFile:
+                if i < (len(self.neuronNumList) - 1) * 2:
+                    if line == '\n':
+                        if i % 2 == 0:
+                            self.weightMatrices.append(shared(np.asarray(weightMatrix)))
+                            weightMatrix = []
+                        else:
+                            self.biasArrays.append(shared(np.asarray(biasVector)))
+                            biasVector = []
+                        i = i + 1
+                    if line.rstrip():
+                        rowList = line.rstrip().split(" ")
+                        if i % 2 == 0:
+                            weightMatrix.append([float(ele) for ele in rowList])
+                        else:
+                            for ele in rowList:
+                                biasVector.append([float(ele)])
+        t1 = time.time()
+        print '...costs ', t1 - t0, ' seconds'
 
 """
 class neuronLayer:
