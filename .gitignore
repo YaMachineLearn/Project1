@@ -1,2 +1,11 @@
 #ignore python compile files
 *.pyc
+
+#ignore data
+MLDS_HW1_RELEASE_v1/*
+
+#ignore models
+models/*
+
+#ignore output
+output/*
