@@ -56,5 +56,6 @@ def outputTestLabelAsCsv(testFrameNames, testLabels, TEST_CSV_FILE_NAME):
     #testFrameNames = ['fadg0_si1279_1', 'fadg0_si1279_2', ...]
     #testLabels = ['sil', 'aa', ...]
     with open(TEST_CSV_FILE_NAME, 'w') as testCsvFile:
+        testCsvFile.write("Id,Prediction\n")
         for i in xrange( len(testFrameNames) ):
             testCsvFile.write(testFrameNames[i] + ',' + testLabels[i] + '\n')
