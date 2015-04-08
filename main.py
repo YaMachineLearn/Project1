@@ -6,14 +6,16 @@ import time
 TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train.ark"  #_fbank_10000
 TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train.lab"
 TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
-SAVE_MODEL_FILENAME = "models/dnn.model"
-LOAD_MODEL_FILENAME = "models/dnn_all_ERR_49_8_E40_L0_05_H1-20150408-13-43.model"
+SAVE_MODEL_FILENAME = None#"models/dnn.model"
+LOAD_MODEL_FILENAME = None#"models/DNN_ER624_CO0.76426_HL256-3_EP3_LR0.25_BS256.model"
 OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
-HIDDEN_LAYER = [128]
-LEARNING_RATE = 0.01
+HIDDEN_LAYER = [128, 128, 128]
+LEARNING_RATE = 0.5
 EPOCH_NUM = 1
 BATCH_SIZE = 256
+
+currentEpoch = 1
 
 print 'Parsing...'
 t0 = time.time()
@@ -25,24 +27,57 @@ print '...costs ', t1 - t0, ' seconds'
 NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM ]
 
 print 'Training...'
-t2 = time.time()
 aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE, LOAD_MODEL_FILENAME )
 
-#print 'Saving Neural Network Model...'
-#aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
-aDNN.train(trainFeats, trainLabels)
-t3 = time.time()
-print '...costs ', t3 - t2, ' seconds'
-print aDNN.errorNum
-print 'Error rate: ', aDNN.errorRate
+while True:
 
-aDNN.saveModel(SAVE_MODEL_FILENAME)
+    #print 'Saving Neural Network Model...'
+    #aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
+    t2 = time.time()
+    aDNN.train(trainFeats, trainLabels)
+    t3 = time.time()
+    print '...costs ', t3 - t2, ' seconds'
+    #print aDNN.errorNum
+    print 'Error rate: ', aDNN.errorRate
 
-print 'Testing...'
-t4 = time.time()
-testLabels = aDNN.test(testFeats)
-t5 = time.time()
-print '...costs', t5 - t4, ' seconds'
+    modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
+        + "_CO" + str(aDNN.cost)[0:7] \
+        + "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) \
+        + "_EP" + str(currentEpoch) \
+        + "_LR" + str(LEARNING_RATE) \
+        + "_BS" + str(BATCH_SIZE)
+    SAVE_MODEL_FILENAME = "models/DNN" + modelInfo + ".model"
+    aDNN.saveModel(SAVE_MODEL_FILENAME)
 
-print 'Writing to csv file...'
-parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
+    print 'Testing...'
+    t4 = time.time()
+    testLabels = aDNN.test(testFeats)
+    t5 = time.time()
+    print '...costs', t5 - t4, ' seconds'
+
+    print 'Writing to csv file...'
+    OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
+    parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
+
+    """
+    startNewStr = raw_input('\nstart a new training? (Y/n) ')
+    if startNewStr == 'n' or startNewStr == 'N':
+        break
+
+    print '    current learning rate: ', LEARNING_RATE
+    inputLrStr = raw_input('        new learning rate: ')
+    if not not inputLrStr:
+        LEARNING_RATE = float(inputLrStr)
+
+    print '    current batch size: ', BATCH_SIZE
+    inputBsStr = raw_input('        new batch size: ')
+    if not not inputBsStr:
+        BATCH_SIZE = int(inputBsStr)
+
+    print '    current epoch num: ', EPOCH_NUM
+    inputEnStr = raw_input('        new epoch num: ')
+    if not not inputEnStr:
+        EPOCH_NUM = int(inputEnStr)
+    """
+
+    currentEpoch += EPOCH_NUM

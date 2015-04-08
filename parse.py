@@ -16,6 +16,7 @@ def parseTrainData(TRAIN_FEATURE_FILENAME, TRAIN_LABEL_FILENAME):
                 lineList = line.rstrip().split(" ")
                 trainFrameNames.append( lineList.pop(0) )
                 trainFeats.append( [ float(ele) for ele in lineList ] )
+    trainFeatFile.close()
 
     #parse training labels
     with open(TRAIN_LABEL_FILENAME) as trainLabelFile:
@@ -23,6 +24,7 @@ def parseTrainData(TRAIN_FEATURE_FILENAME, TRAIN_LABEL_FILENAME):
             if line.rstrip():
                 lineList = line.rstrip().split(",")
                 trainLabels.append(lineList[1])
+    trainLabelFile.close()
 
     #if not not trainFeats:
     #    trainFeatDim = len(trainFeats[0])
