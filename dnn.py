@@ -55,10 +55,9 @@ class dnn:
             count = 0
             sumCost = 0.
             for i in xrange(numOfBatches): #feats and labels are shuffled, so don't need random index here
-                if i % 10 == 0:
-                    progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
-                    sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
-                    sys.stdout.flush()
+                progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
+                sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
+                sys.stdout.flush()
                 self.out, self.cost = train_model(shuffledIndex[i*self.batchSize:(i+1)*self.batchSize])
                 sumCost = sumCost + self.cost
                 count = count + 1
@@ -118,6 +117,9 @@ class dnn:
             self.errorNum += np.sum(T.argmax(forwardOutput, 0).eval() != labelUtil.labelsToIndices(trainLabels[i*calcErrorSize:(i+1)*calcErrorSize]))
         self.errorRate = self.errorNum / float(calcErrorSize * batchNum)
         #return self.errorRate
+
+    def setLearningRate(self, newLR):
+        self.learningRate = newLR
 
     ### Model generate, save and load ###
     def setRandomModel(self):

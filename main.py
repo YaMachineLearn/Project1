@@ -11,11 +11,18 @@ LOAD_MODEL_FILENAME = None#"models/DNN_ER624_CO0.76426_HL256-3_EP3_LR0.25_BS256.
 OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
 HIDDEN_LAYER = [128, 128, 128]
-LEARNING_RATE = 0.5
+LEARNING_RATE_INIT = 0.5
+LEARNING_RATE_DECAY = 0.75
 EPOCH_NUM = 1
 BATCH_SIZE = 256
 
-currentEpoch = 1
+BRANCH_NUM = 2
+
+curEpoch = 0
+learningRates = [LEARNING_RATE_INIT, LEARNING_RATE_INIT*LEARNING_RATE_DECAY]
+errorRates = [1.0] * BRANCH_NUM
+modelNames = [None] * BRANCH_NUM
+loadModelName = None
 
 print 'Parsing...'
 t0 = time.time()
@@ -26,38 +33,38 @@ print '...costs ', t1 - t0, ' seconds'
 
 NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM ]
 
-print 'Training...'
-aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE, LOAD_MODEL_FILENAME )
-
 while True:
+    for branchIndex in xrange(BRANCH_NUM):
+        print 'Training...'
+        aDNN = dnn.dnn( NEURON_NUM_LIST, learningRates[branchIndex], EPOCH_NUM, BATCH_SIZE, loadModelName )
 
-    #print 'Saving Neural Network Model...'
-    #aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
-    t2 = time.time()
-    aDNN.train(trainFeats, trainLabels)
-    t3 = time.time()
-    print '...costs ', t3 - t2, ' seconds'
-    #print aDNN.errorNum
-    print 'Error rate: ', aDNN.errorRate
+        #print 'Saving Neural Network Model...'
+        #aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
+        t2 = time.time()
+        aDNN.train(trainFeats, trainLabels)
+        t3 = time.time()
+        print '...costs ', t3 - t2, ' seconds'
+        #print aDNN.errorNum
+        print 'Error rate: ', aDNN.errorRate
 
-    modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
-        + "_CO" + str(aDNN.cost)[0:7] \
-        + "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) \
-        + "_EP" + str(currentEpoch) \
-        + "_LR" + str(LEARNING_RATE) \
-        + "_BS" + str(BATCH_SIZE)
-    SAVE_MODEL_FILENAME = "models/DNN" + modelInfo + ".model"
-    aDNN.saveModel(SAVE_MODEL_FILENAME)
+        modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
+            + "_CO" + str(aDNN.cost)[0:7] \
+            + "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) \
+            + "_EP" + str(curEpoch) \
+            + "_LR" + str(curLearningRate) \
+            + "_BS" + str(BATCH_SIZE)
+        SAVE_MODEL_FILENAME = "models/DNN" + modelInfo + ".model"
+        aDNN.saveModel(SAVE_MODEL_FILENAME)
 
-    print 'Testing...'
-    t4 = time.time()
-    testLabels = aDNN.test(testFeats)
-    t5 = time.time()
-    print '...costs', t5 - t4, ' seconds'
+        print 'Testing...'
+        t4 = time.time()
+        testLabels = aDNN.test(testFeats)
+        t5 = time.time()
+        print '...costs', t5 - t4, ' seconds'
 
-    print 'Writing to csv file...'
-    OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
-    parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
+        print 'Writing to csv file...'
+        OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
+        parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
 
     """
     startNewStr = raw_input('\nstart a new training? (Y/n) ')
@@ -80,4 +87,4 @@ while True:
         EPOCH_NUM = int(inputEnStr)
     """
 
-    currentEpoch += EPOCH_NUM
+    curEpoch += EPOCH_NUM
