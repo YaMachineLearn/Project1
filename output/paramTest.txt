@@ -1,0 +1,119 @@
+
+best:
+dnn_all_er719_hl128-3_ep1_lr1.0_bs256       lr 0.5/3.0, 
+
+dnn_all_er742_hl256-3_ep1_lr0.4_bs256       lr 0.3/0.5
+cost: 0.906
+
+
+
+
+
+dnn_all_er892_hid128_ep1_lr0.01_bs256
+dnn_all_er696_hid128_ep1_lr0.01_bs256
+dnn_all_er898_hl128-3_ep1_lr0.01_bs256
+dnn_all_er873_hl128-3_ep1_lr0.1_bs256
+dnn_all_er748_hl128-3_ep1_lr1.0_bs256
+dnn_all_er960_hl128-3_ep1_lr3.0_bs256
+
+dnn_all_er719_hl128-3_ep1_lr1.0_bs256
+cost: 0.903
+
+dnn_all_er775_hl128-3_ep1_lr0.5_bs256
+cost: 0.911
+
+dnn_all_er865_hl128-3_ep1_lr1.0_bs1024
+cost: 0.963
+
+dnn_all_er834_hl128-3_ep1_lr1.0_bs512
+cost: 5.7
+
+dnn_all_er978_hl128-3_ep1_lr1.0_bs128
+
+dnn_all_er_hl128-3_ep10_lr1.0_bs256
+cost:
+    0.900
+    0.821
+    0.784
+    0.762
+    nan
+
+dnn_all_er602_hl128-3_ep4_lr1.0_bs256
+Cost:  0.906405739569.994309%    
+Cost:  0.819146747351.994309%    
+Cost:  0.781676819418.994309%    
+Cost:  0.759771477802.994309%    
+...costs  178.889622927  seconds
+677753
+Error rate:  0.602541911038
+
+
+dnn_all_er826_hl512-3_ep1_lr0.1_bs256
+cost: 0.942
+error: 0.8258
+
+
+//256 * 3
+dnn_all_er816_hl256-3_ep1_lr1.0_bs256
+cost: 0.970
+
+dnn_all_er858_hl256-3_ep1_lr0.1_bs256
+cost: 0.950
+
+dnn_all_er788_hl256-3_ep1_lr0.3_bs256
+cost: 0.9109
+
+dnn_all_er768_hl256-3_ep1_lr0.5_bs256
+cost: 0.913
+
+dnn_all_er742_hl256-3_ep1_lr0.4_bs256
+cost: 0.906
+
+    //lr_1 =0.4
+    dnn_all_er658_hl256-3_ep2_lr0.4_bs256
+    cost: 0.81176
+    er: 0.658
+
+    dnn_all_er673_hl256-3_ep2_lr0.25_bs256
+    cost: 0.8105109
+    er: 0.673
+
+    
+
+
+
+
+
+//128 * 4
+dnn_all_er829_hl128-4_ep1_lr1.0_bs256
+cost: 0.931
+er: 0.82925
+
+dnn_all_er898_hl128-4_ep1_lr0.1_bs256
+cost: 0.969638
+er: 0.898
+
+dnn_all_er826_hl128-4_ep1_lr0.375_bs256
+cost: 0.949
+er: 0.826
+
+dnn_all_er_hl128-4_ep1_lr0.5_bs256
+cost: 0.937
+er: 0.837
+
+dnn_all_er_hl128-4_ep1_lr0._bs256
+cost: 0.
+er: 0.
+
+dnn_all_er_hl128-4_ep1_lr0._bs256
+cost: 0.
+er: 0.
+
+
+
+
+
+hid: 128 128 128
+epoch: 1
+lr: 0.01 / 0.1 / 0.001
+bs: 256 / 1024 / 4096
