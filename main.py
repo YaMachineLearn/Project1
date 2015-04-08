@@ -1,20 +1,19 @@
-
-import parse #as parse
-import dnn #as dnn
+import parse 		#as parse
+import dnn 			#as dnn
 import labelUtil
 import time
 
-TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train_fbank_10000.ark"  #_fbank_10000
-TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train_10000.lab"
-TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
-SAVE_MODEL_FILENAME = "models/dnn.model"
-LOAD_MODEL_FILENAME = "models/dnn.model"
-OUTPUT_CSV_FILE_NAME = "output/result.csv"
+TRAIN_FEATURE_FILENAME 	= "MLDS_HW1_RELEASE_v1/fbank/train_fbank_10000.ark"  #_fbank_10000
+TRAIN_LABEL_FILENAME 	= "MLDS_HW1_RELEASE_v1/label/train_10000.lab"
+TEST_FEATURE_FILENAME 	= "MLDS_HW1_RELEASE_v1/fbank/test.ark"
+SAVE_MODEL_FILENAME 	= "models/dnn.model"
+LOAD_MODEL_FILENAME 	= "models/dnn.model"
+OUTPUT_CSV_FILE_NAME 	= "output/result.csv"
 
-HIDDEN_LAYER = [128, 128, 128]
-LEARNING_RATE = 0.01
-EPOCH_NUM = 10
-BATCH_SIZE = 256
+HIDDEN_LAYER 	= [128, 128, 128]
+LEARNING_RATE 	= 0.01
+EPOCH_NUM 		= 1
+BATCH_SIZE 		= 256
 
 print 'Parsing...'
 t0 = time.time()
@@ -28,13 +27,9 @@ NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM 
 print 'Training...'
 t2 = time.time()
 aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE )
-#print 'Saving Neural Network Model...'
-#aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
 aDNN.train(trainFeats, trainLabels)
 t3 = time.time()
 print '...costs ', t3 - t2, ' seconds'
-#print aDNN.out
-#print aDNN.cost
 print aDNN.errorNum
 print 'Error rate: ', aDNN.errorRate
 
@@ -48,7 +43,3 @@ print '...costs', t5 - t4, ' seconds'
 
 print 'Writing to csv file...'
 parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
-#print 'testLabels:'
-#print testLabels
-
-#outputCSV(testFrameNames, testLabels)
