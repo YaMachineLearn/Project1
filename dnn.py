@@ -53,12 +53,15 @@ class dnn:
             random.shuffle(shuffledIndex)
 
             count = 0
+            sumCost = 0.
             for i in xrange(numOfBatches): #feats and labels are shuffled, so don't need random index here
                 progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
                 sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
                 sys.stdout.flush()
                 self.out, self.cost = train_model(shuffledIndex[i*self.batchSize:(i+1)*self.batchSize])
+                sumCost = sumCost + self.cost
                 count = count + 1
+            print 'Cost: ', sumCost / float(numOfBatches)
 
         self.calculateError(trainFeats, trainLabels)
 
