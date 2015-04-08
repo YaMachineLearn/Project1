@@ -11,13 +11,13 @@ SAVE_MODEL_FILENAME = None#"models/dnn.model"
 LOAD_MODEL_FILENAME = None#"models/DNN_ER624_CO0.76426_HL256-3_EP3_LR0.25_BS256.model"
 OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
-HIDDEN_LAYER = [256, 256, 256]
-LEARNING_RATE = 0.5
+HIDDEN_LAYER = [1024]
+LEARNING_RATE = 0.125
 EPOCH_NUM = 1
 BATCH_SIZE = 256
 
 #params for first epoch
-INIT_MODEL_NUM = 8
+INIT_MODEL_NUM = 4
 errorRates = [1.0] * INIT_MODEL_NUM
 modelNames = [None] * INIT_MODEL_NUM
 
