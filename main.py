@@ -2,27 +2,29 @@ import parse 		#as parse
 import dnn 			#as dnn
 import labelUtil
 import time
+import math
 
 TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train.ark"  #_fbank_10000
 TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train.lab"
 TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
 SAVE_MODEL_FILENAME = None#"models/dnn.model"
-LOAD_MODEL_FILENAME = None#"models/DNN_ER624_CO0.76426_HL256-3_EP3_LR0.25_BS256.model"
+LOAD_MODEL_FILENAME = "models/DNN_ER0.7287_CO0.90558_HL256-3_EP1_LR0.5_BS256.model"
 OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
-HIDDEN_LAYER = [128, 128, 128]
+HIDDEN_LAYER = [256, 256, 256]
 LEARNING_RATE_INIT = 0.5
-LEARNING_RATE_DECAY = 0.75
+LEARNING_RATE_DECAY = 0.5
 EPOCH_NUM = 1
 BATCH_SIZE = 256
 
+#setting of searching
 BRANCH_NUM = 2
+MAX_EPOCH = 50  # now useless
 
-curEpoch = 0
+curEpoch = 1    #zero-index
 learningRates = [LEARNING_RATE_INIT, LEARNING_RATE_INIT*LEARNING_RATE_DECAY]
 errorRates = [1.0] * BRANCH_NUM
 modelNames = [None] * BRANCH_NUM
-loadModelName = None
 
 print 'Parsing...'
 t0 = time.time()
@@ -34,9 +36,12 @@ print '...costs ', t1 - t0, ' seconds'
 NEURON_NUM_LIST = [ len(trainFeats[0]) ] + HIDDEN_LAYER + [ labelUtil.LABEL_NUM ]
 
 while True:
+    print "\nepoch: ", (curEpoch+1)
+
     for branchIndex in xrange(BRANCH_NUM):
+        print "learningRate: ", learningRates[branchIndex]
         print 'Training...'
-        aDNN = dnn.dnn( NEURON_NUM_LIST, learningRates[branchIndex], EPOCH_NUM, BATCH_SIZE, loadModelName )
+        aDNN = dnn.dnn( NEURON_NUM_LIST, learningRates[branchIndex], EPOCH_NUM, BATCH_SIZE, LOAD_MODEL_FILENAME )
 
         #print 'Saving Neural Network Model...'
         #aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
@@ -47,15 +52,18 @@ while True:
         #print aDNN.errorNum
         print 'Error rate: ', aDNN.errorRate
 
-        modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
-            + "_CO" + str(aDNN.cost)[0:7] \
-            + "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) \
-            + "_EP" + str(curEpoch) \
-            + "_LR" + str(curLearningRate) \
-            + "_BS" + str(BATCH_SIZE)
-        SAVE_MODEL_FILENAME = "models/DNN" + modelInfo + ".model"
-        aDNN.saveModel(SAVE_MODEL_FILENAME)
+        #update branch info
+        errorRates[branchIndex] = aDNN.errorRate
+        modelInfo = ( "_ER" + str( round(aDNN.errorRate*100000)/100000.0 ) +
+            "_CO" + str( round(aDNN.cost*100000)/100000.0 ) +
+            "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) +
+            "_EP" + str(curEpoch+1) +
+            "_LR" + str( round(learningRates[branchIndex]*100000)/100000.0 ) +
+            "_BS" + str(BATCH_SIZE) )
+        modelNames[branchIndex] = "models/DNN" + modelInfo + ".model"
+        aDNN.saveModel(modelNames[branchIndex])
 
+        """
         print 'Testing...'
         t4 = time.time()
         testLabels = aDNN.test(testFeats)
@@ -65,26 +73,18 @@ while True:
         print 'Writing to csv file...'
         OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
         parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
+        """
 
-    """
-    startNewStr = raw_input('\nstart a new training? (Y/n) ')
-    if startNewStr == 'n' or startNewStr == 'N':
-        break
+    bestBranchIndex = 0
+    minErrorRate = errorRates[0]
+    for branchIndex in xrange(BRANCH_NUM):
+        if errorRates[branchIndex] < minErrorRate:
+            bestBranchIndex = branchIndex
+            minErrorRate = errorRates[branchIndex]
 
-    print '    current learning rate: ', LEARNING_RATE
-    inputLrStr = raw_input('        new learning rate: ')
-    if not not inputLrStr:
-        LEARNING_RATE = float(inputLrStr)
+    bestLearningRate = learningRates[bestBranchIndex]
+    learningRates = [bestLearningRate, bestLearningRate*LEARNING_RATE_DECAY]
 
-    print '    current batch size: ', BATCH_SIZE
-    inputBsStr = raw_input('        new batch size: ')
-    if not not inputBsStr:
-        BATCH_SIZE = int(inputBsStr)
-
-    print '    current epoch num: ', EPOCH_NUM
-    inputEnStr = raw_input('        new epoch num: ')
-    if not not inputEnStr:
-        EPOCH_NUM = int(inputEnStr)
-    """
+    LOAD_MODEL_FILENAME = modelNames[bestBranchIndex]
 
     curEpoch += EPOCH_NUM
