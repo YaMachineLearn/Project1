@@ -3,16 +3,24 @@ import dnn 			#as dnn
 import labelUtil
 import time
 
-TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train.ark"  #_fbank_10000
+# Training input files
+TRAIN_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/train.ark"
 TRAIN_LABEL_FILENAME = "MLDS_HW1_RELEASE_v1/label/train.lab"
-TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
-SAVE_MODEL_FILENAME = None#"models/dnn.model"
-LOAD_MODEL_FILENAME = None#"models/DNN_ER624_CO0.76426_HL256-3_EP3_LR0.25_BS256.model"
-OUTPUT_CSV_FILE_NAME = "output/result.csv"
 
-HIDDEN_LAYER = [128, 128, 128]
-LEARNING_RATE = 0.5
-EPOCH_NUM = 1
+# Testing input file
+TEST_FEATURE_FILENAME = "MLDS_HW1_RELEASE_v1/fbank/test.ark"
+
+# Neural Network Model saving and loading file name
+SAVE_MODEL_FILENAME = None #"models/dnn.model"
+LOAD_MODEL_FILENAME = None #"models/dnn.model" <- Change this if you want to train from an existing model
+
+# Result output csv file
+OUTPUT_CSV_FILE_NAME = None #"output/result.csv"
+
+# Nerual Network Parameters
+HIDDEN_LAYER = [128, 128, 128]  # 3 hidden layers
+LEARNING_RATE = 0.05
+EPOCH_NUM = 10  # number of epochs to run before saving the model
 BATCH_SIZE = 256
 
 currentEpoch = 1
@@ -30,16 +38,14 @@ print 'Training...'
 aDNN = dnn.dnn( NEURON_NUM_LIST, LEARNING_RATE, EPOCH_NUM, BATCH_SIZE, LOAD_MODEL_FILENAME )
 
 while True:
-
-    #print 'Saving Neural Network Model...'
-    #aDNN.saveNeuralNetwork(OUTPUT_MODEL_FILENAME)
     t2 = time.time()
     aDNN.train(trainFeats, trainLabels)
     t3 = time.time()
     print '...costs ', t3 - t2, ' seconds'
-    #print aDNN.errorNum
+
     print 'Error rate: ', aDNN.errorRate
 
+    # Saving the Neural Network Model
     modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
         + "_CO" + str(aDNN.cost)[0:7] \
         + "_HL" + str(HIDDEN_LAYER[0]) + "-" + str(len(HIDDEN_LAYER)) \
@@ -58,26 +64,5 @@ while True:
     print 'Writing to csv file...'
     OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
     parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
-
-    """
-    startNewStr = raw_input('\nstart a new training? (Y/n) ')
-    if startNewStr == 'n' or startNewStr == 'N':
-        break
-
-    print '    current learning rate: ', LEARNING_RATE
-    inputLrStr = raw_input('        new learning rate: ')
-    if not not inputLrStr:
-        LEARNING_RATE = float(inputLrStr)
-
-    print '    current batch size: ', BATCH_SIZE
-    inputBsStr = raw_input('        new batch size: ')
-    if not not inputBsStr:
-        BATCH_SIZE = int(inputBsStr)
-
-    print '    current epoch num: ', EPOCH_NUM
-    inputEnStr = raw_input('        new epoch num: ')
-    if not not inputEnStr:
-        EPOCH_NUM = int(inputEnStr)
-    """
 
     currentEpoch += EPOCH_NUM

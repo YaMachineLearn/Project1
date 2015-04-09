@@ -1,5 +1,4 @@
 import time
-import forward
 import labelUtil
 import random
 import theano
@@ -55,22 +54,19 @@ class dnn:
             count = 0
             sumCost = 0.
             for i in xrange(numOfBatches): #feats and labels are shuffled, so don't need random index here
-                if i % 10 == 0:
-                    progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
-                    sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
-                    sys.stdout.flush()
+                progress = float(count + (numOfBatches * epoch)) / float(numOfBatches * self.epochNum) * 100.
+                sys.stdout.write('Epoch %d, Progress: %f%%    \r' % (epoch, progress))
+                sys.stdout.flush()
                 self.out, self.cost = train_model(shuffledIndex[i*self.batchSize:(i+1)*self.batchSize])
                 sumCost = sumCost + self.cost
                 count = count + 1
             self.cost = sumCost / float(numOfBatches)
             print 'Cost: ', sumCost / float(numOfBatches)
 
-            #self.saveModel( 'models/dnn_ep' + str(epoch) + '_cost' + str( sumCost/float(numOfBatches) ) + '.model' )
-
         self.calculateError(trainFeats, trainLabels)
 
     def test(self, testFeats):
-        test_model = forward.getForwardFunction(testFeats, len(testFeats), self.weightMatrices, self.biasArrays)
+        test_model = self.getForwardFunction(testFeats, len(testFeats), self.weightMatrices, self.biasArrays)
         testLabels = []
         outputArray = test_model(0)
         outputMaxIndex = T.argmax(outputArray, 0).eval()
@@ -103,12 +99,6 @@ class dnn:
         return updates
 
     def calculateError(self, trainFeats, trainLabels):
-        """
-        forwardFunction = self.getForwardFunction(trainFeats, len(trainFeats), self.weightMatrices, self.biasArrays)
-        self.out = forwardFunction(0)
-        self.errorNum = np.sum(T.argmax(self.out, 0).eval() != labelUtil.labelsToIndices(trainLabels[0:len(trainFeats)]))
-        self.errorRate = self.errorNum / float(len(trainFeats))
-        """
         batchNum = 7   #1124823 = 3*7*29*1847
         calcErrorSize = len(trainFeats) / batchNum
         forwardFunction = self.getForwardFunction(trainFeats, calcErrorSize, self.weightMatrices, self.biasArrays)
@@ -117,7 +107,6 @@ class dnn:
             forwardOutput = forwardFunction(i)
             self.errorNum += np.sum(T.argmax(forwardOutput, 0).eval() != labelUtil.labelsToIndices(trainLabels[i*calcErrorSize:(i+1)*calcErrorSize]))
         self.errorRate = self.errorNum / float(calcErrorSize * batchNum)
-        #return self.errorRate
 
     ### Model generate, save and load ###
     def setRandomModel(self):
