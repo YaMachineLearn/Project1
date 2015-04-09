@@ -26,6 +26,9 @@ class dnn:
             self.loadModel(LOAD_MODEL_FILENAME)
         #ex: weightMatrices == [ [ [,,],[,,],...,[,,] ], [ [,,],[,,],...,[,,] ], ... ]
         #ex: biasArrays == [ [ [0],[0],...,[0] ], [ [0],[0],...,[0] ], ... ]
+
+        self.errorNum = 0
+        self.errorRate = 1.0
         
     def train(self, trainFeats, trainLabels):
         indices = T.ivector()
@@ -61,12 +64,12 @@ class dnn:
                 self.out, self.cost = train_model(shuffledIndex[i*self.batchSize:(i+1)*self.batchSize])
                 sumCost = sumCost + self.cost
                 count = count + 1
-            self.cost = sumCost / float(numOfBatches)
             print 'Cost: ', sumCost / float(numOfBatches)
 
             #self.saveModel( 'models/dnn_ep' + str(epoch) + '_cost' + str( sumCost/float(numOfBatches) ) + '.model' )
-
-        self.calculateError(trainFeats, trainLabels)
+        
+        self.totalCost = sumCost / float(numOfBatches)
+        #self.calculateError(trainFeats, trainLabels)
 
     def test(self, testFeats):
         test_model = forward.getForwardFunction(testFeats, len(testFeats), self.weightMatrices, self.biasArrays)
@@ -108,7 +111,7 @@ class dnn:
         self.errorNum = np.sum(T.argmax(self.out, 0).eval() != labelUtil.labelsToIndices(trainLabels[0:len(trainFeats)]))
         self.errorRate = self.errorNum / float(len(trainFeats))
         """
-        batchNum = 7   #1124823 = 3*7*29*1847
+        batchNum = 21   #1124823 = 3*7*29*1847
         calcErrorSize = len(trainFeats) / batchNum
         forwardFunction = self.getForwardFunction(trainFeats, calcErrorSize, self.weightMatrices, self.biasArrays)
         self.errorNum = 0
