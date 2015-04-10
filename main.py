@@ -45,6 +45,8 @@ while True:
 
     print 'Error rate: ', aDNN.errorRate
 
+    currentEpoch += EPOCH_NUM
+    
     # Saving the Neural Network Model
     modelInfo = "_ER" + str(aDNN.errorRate)[2:5] \
         + "_CO" + str(aDNN.cost)[0:7] \
@@ -65,4 +67,3 @@ while True:
     OUTPUT_CSV_FILE_NAME = "output/TEST" + modelInfo + ".csv"
     parse.outputTestLabelAsCsv(testFrameNames, testLabels, OUTPUT_CSV_FILE_NAME)
 
-    currentEpoch += EPOCH_NUM
