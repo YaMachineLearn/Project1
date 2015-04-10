@@ -5,7 +5,7 @@
 MLDS_HW1_RELEASE_v1/*
 
 #ignore models
-models/*
+models/dnn.model
 
 #ignore output
-output/*
+output/result.csv
